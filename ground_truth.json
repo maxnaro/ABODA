@@ -1,0 +1,124 @@
+{
+  "video1.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 1895,
+    "bag_roi": [
+      134,
+      325,
+      49,
+      34
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video10.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 1927,
+    "bag_roi": [
+      169,
+      203,
+      77,
+      38
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video11.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 450,
+    "bag_roi": [
+      516,
+      250,
+      13,
+      14
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video2.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 2704,
+    "bag_roi": [
+      461,
+      76,
+      17,
+      26
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video3.avi": {
+    "has_abandonment": false,
+    "true_abandon_frame": null,
+    "bag_roi": [],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video4.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 1114,
+    "bag_roi": [
+      462,
+      362,
+      38,
+      50
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video5.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 2549,
+    "bag_roi": [
+      133,
+      204,
+      38,
+      23
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video6.avi": {
+    "has_abandonment": false,
+    "true_abandon_frame": null,
+    "bag_roi": [],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video7.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 4387,
+    "bag_roi": [
+      136,
+      88,
+      42,
+      57
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video8.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 4224,
+    "bag_roi": [
+      111,
+      199,
+      165,
+      51
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  },
+  "video9.avi": {
+    "has_abandonment": true,
+    "true_abandon_frame": 1658,
+    "bag_roi": [
+      420,
+      134,
+      55,
+      70
+    ],
+    "radius_px": 200,
+    "threshold_s": 15
+  }
+}
