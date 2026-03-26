@@ -1,43 +1,40 @@
 """
 Abandoned Luggage Annotation Tool
-==================================
+
 Rapidly annotate video datasets for abandoned-luggage detection.
-Loads all .mp4/.avi files from a directory, lets the user tag the
+Loads video files from a directory or a single file, lets the user tag the
 exact abandonment frame + bounding box, and saves results to ground_truth.json.
 
 Usage:
-    python annotate_abandoned_luggage.py [VIDEO_DIR] [--output ground_truth.json]
+    python annotate.py [VIDEO_PATH_OR_DIR] [--output ground_truth.json]
 """
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
 import cv2
 import numpy as np
 
-# ── Constants ────────────────────────────────────────────────────────────────
 SKIP_SECONDS = 5
 DEFAULT_THRESHOLD_SECONDS = 15
 DEFAULT_RADIUS_PX = 200
 WINDOW_NAME = "Abandoned Luggage Annotator"
 HUD_HEIGHT = 140
 HUD_ALPHA = 0.70
-BOX_COLOR = (0, 255, 0)  # green
+BOX_COLOR = (0, 255, 0)
 BOX_THICKNESS = 2
-RADIUS_COLOR = (255, 180, 0)  # cyan-ish
+RADIUS_COLOR = (255, 180, 0)
 RADIUS_ALPHA = 0.25
 TRACKBAR_NAME = "Frame"
 
 
-# ── State shared with mouse callback ────────────────────────────────────────
 class AnnotationState:
     def __init__(self, radius=DEFAULT_RADIUS_PX, threshold=DEFAULT_THRESHOLD_SECONDS):
         self.radius = radius
         self.threshold = threshold
-        self.mouse_pos = None  # (x, y) – updated on every mouse move
+        self.mouse_pos = None
         self.reset_video()
 
     def reset_video(self):
@@ -45,7 +42,7 @@ class AnnotationState:
         self.drawing = False
         self.roi_start = None
         self.roi_end = None
-        self.roi_committed = None  # (x, y, w, h) once mouse is released
+        self.roi_committed = None
         self.abandon_frame = None
         self.has_abandonment = False
         self.marked_negative = False
@@ -53,16 +50,13 @@ class AnnotationState:
         self.current_frame = 0
 
 
-state = AnnotationState()  # re-initialized in main() with CLI args
+state = AnnotationState()
 
 
-# ── Mouse callback ──────────────────────────────────────────────────────────
 def mouse_callback(event, x, y, flags, _param):
-    # Always track cursor position (for radius circle overlay)
     if event == cv2.EVENT_MOUSEMOVE:
         state.mouse_pos = (x, y)
 
-    # Drawing ROI only works while paused
     if not state.paused:
         return
 
@@ -84,34 +78,30 @@ def mouse_callback(event, x, y, flags, _param):
         h = abs(y - state.roi_start[1])
         if w > 3 and h > 3:
             state.roi_committed = (x0, y0, w, h)
-            state.has_abandonment = True
-            state.abandon_frame = state.current_frame
         else:
             state.roi_committed = None
 
 
-# ── Trackbar callback (used to seek) ────────────────────────────────────────
-def on_trackbar(pos):
-    # The actual seek is handled in the main loop when we detect the
-    # trackbar position differs from the current frame.
+def on_trackbar(_pos):
     pass
 
 
-# ── Drawing helpers ─────────────────────────────────────────────────────────
 def draw_radius_circle(frame):
-    """Draw a translucent circle around the mouse cursor showing the ownership radius."""
-    if state.mouse_pos is None:
+    if state.roi_committed:
+        x, y, w, h = state.roi_committed
+        center = (x + w // 2, y + h // 2)
+    elif state.mouse_pos is not None:
+        center = state.mouse_pos
+    else:
         return
     overlay = frame.copy()
-    cv2.circle(overlay, state.mouse_pos, state.radius, RADIUS_COLOR, 2, cv2.LINE_AA)
-    cv2.circle(overlay, state.mouse_pos, state.radius, RADIUS_COLOR, -1, cv2.LINE_AA)
+    cv2.circle(overlay, center, state.radius, RADIUS_COLOR, 2, cv2.LINE_AA)
+    cv2.circle(overlay, center, state.radius, RADIUS_COLOR, -1, cv2.LINE_AA)
     cv2.addWeighted(overlay, RADIUS_ALPHA, frame, 1 - RADIUS_ALPHA, 0, frame)
-    # Thin solid border on top for clarity
-    cv2.circle(frame, state.mouse_pos, state.radius, RADIUS_COLOR, 1, cv2.LINE_AA)
+    cv2.circle(frame, center, state.radius, RADIUS_COLOR, 1, cv2.LINE_AA)
 
 
 def draw_roi_preview(frame):
-    """Draw the in-progress or committed bounding box."""
     if state.drawing and state.roi_start and state.roi_end:
         cv2.rectangle(frame, state.roi_start, state.roi_end, BOX_COLOR, BOX_THICKNESS)
     elif state.roi_committed:
@@ -131,7 +121,6 @@ def draw_roi_preview(frame):
 
 
 def draw_hud(frame, video_name, frame_idx, total_frames, fps, video_num, video_total):
-    """Semi-transparent HUD at the bottom of the frame."""
     h, w = frame.shape[:2]
     overlay = frame.copy()
     y_top = h - HUD_HEIGHT
@@ -143,9 +132,8 @@ def draw_hud(frame, video_name, frame_idx, total_frames, fps, video_num, video_t
     green = (0, 220, 100)
     yellow = (0, 220, 255)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    lh = 22  # line height
+    lh = 22
 
-    # Row 1 – video info
     time_sec = frame_idx / fps if fps > 0 else 0
     mins, secs = divmod(int(time_sec), 60)
     info = (
@@ -154,7 +142,6 @@ def draw_hud(frame, video_name, frame_idx, total_frames, fps, video_num, video_t
     )
     cv2.putText(frame, info, (10, y_top + lh), font, 0.50, white, 1, cv2.LINE_AA)
 
-    # Row 2 – annotation state
     status_parts = []
     if state.marked_negative:
         status_parts.append(("NEGATIVE SAMPLE", yellow))
@@ -173,11 +160,9 @@ def draw_hud(frame, video_name, frame_idx, total_frames, fps, video_num, video_t
         )
         x_cursor += cv2.getTextSize(text, font, 0.45, 1)[0][0] + 20
 
-    # Row 3 – play/pause + radius/threshold
     mode = "PAUSED" if state.paused else "PLAYING"
     params = (
-        f"{mode}  |  Radius: {state.radius}px  |  "
-        f"Threshold: {state.threshold}s"
+        f"{mode}  |  Radius: {state.radius}px  |  " f"Threshold: {state.threshold}s"
     )
     cv2.putText(
         frame,
@@ -190,24 +175,19 @@ def draw_hud(frame, video_name, frame_idx, total_frames, fps, video_num, video_t
         cv2.LINE_AA,
     )
 
-    # Row 4 – keybindings
     keys = (
-        "SPACE:Play/Pause  LEFT/RIGHT:+/-5s  T:+threshold  "
+        "SPACE:Play/Pause  a/d:+/-5s  T:+threshold  "
         "Drag:ROI  F:Negative  ENTER:Save+Next  Q:Quit"
     )
     cv2.putText(frame, keys, (10, y_top + lh * 4 + 4), font, 0.38, grey, 1, cv2.LINE_AA)
 
-    # Row 5 – radius/threshold adjustment keys
-    adj_keys = "+/-:Radius  [/]:Threshold"
-    cv2.putText(frame, adj_keys, (10, y_top + lh * 5 + 4), font, 0.38, grey, 1, cv2.LINE_AA)
+    adj_keys = "+/-:Radius  [/]:Threshold  H:Toggle HUD"
+    cv2.putText(
+        frame, adj_keys, (10, y_top + lh * 5 + 4), font, 0.38, grey, 1, cv2.LINE_AA
+    )
 
 
-# ── Core loop for a single video ────────────────────────────────────────────
 def annotate_video(video_path, video_num, video_total):
-    """
-    Returns a dict with annotation for this video, or None if the user quit.
-    Second return value is True if the user pressed Q (quit entirely).
-    """
     state.reset_video()
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
@@ -231,17 +211,15 @@ def annotate_video(video_path, video_num, video_total):
     quit_all = False
 
     while True:
-        # ── Seek if trackbar was moved by user ──────────────────────────
         trackbar_pos = cv2.getTrackbarPos(TRACKBAR_NAME, WINDOW_NAME)
         if trackbar_pos < 0:
-            # Window was closed
             break
 
         if state.paused and trackbar_pos != state.current_frame:
             state.current_frame = trackbar_pos
             cap.set(cv2.CAP_PROP_POS_FRAMES, state.current_frame)
+            last_display = None
 
-        # ── Read frame ──────────────────────────────────────────────────
         if not state.paused:
             ret, frame = cap.read()
             if not ret:
@@ -253,7 +231,7 @@ def annotate_video(video_path, video_num, video_total):
             cv2.setTrackbarPos(TRACKBAR_NAME, WINDOW_NAME, state.current_frame)
             last_display = frame.copy()
         else:
-            if last_display is None or trackbar_pos != state.current_frame:
+            if last_display is None:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, state.current_frame)
                 ret, frame = cap.read()
                 if ret:
@@ -280,21 +258,22 @@ def annotate_video(video_path, video_num, video_total):
             )
         cv2.imshow(WINDOW_NAME, display)
 
-        # ── Key handling ────────────────────────────────────────────────
         wait_ms = 1 if not state.paused else 30
         key = cv2.waitKey(wait_ms) & 0xFF
 
         if key == ord(" "):
             state.paused = not state.paused
             if not state.paused:
-                # Resume from current position
                 cap.set(cv2.CAP_PROP_POS_FRAMES, state.current_frame)
 
         elif key == ord("q") or key == ord("Q"):
             quit_all = True
             break
 
-        elif key == 13:  # Enter
+        elif key == 13:
+            if state.roi_committed and not state.marked_negative:
+                state.has_abandonment = True
+                state.abandon_frame = state.current_frame
             break
 
         elif key == ord("f") or key == ord("F"):
@@ -304,15 +283,13 @@ def annotate_video(video_path, video_num, video_total):
             state.abandon_frame = None
 
         elif key == ord("t") or key == ord("T"):
-            # Jump forward by threshold seconds (time-travel only)
             jump = int(state.threshold * fps)
             state.current_frame = min(state.current_frame + jump, total_frames - 1)
             cap.set(cv2.CAP_PROP_POS_FRAMES, state.current_frame)
             cv2.setTrackbarPos(TRACKBAR_NAME, WINDOW_NAME, state.current_frame)
             state.paused = True
-            last_display = None  # force re-read
+            last_display = None
 
-        # Left arrow  (0x51 on some backends, 81 decimal; also 2 for arrow keys)
         elif key == 81 or key == 2 or key == ord("a"):
             jump = int(SKIP_SECONDS * fps)
             state.current_frame = max(state.current_frame - jump, 0)
@@ -321,7 +298,6 @@ def annotate_video(video_path, video_num, video_total):
             state.paused = True
             last_display = None
 
-        # Right arrow (0x53 on some backends, 83 decimal; also 3)
         elif key == 83 or key == 3 or key == ord("d"):
             jump = int(SKIP_SECONDS * fps)
             state.current_frame = min(state.current_frame + jump, total_frames - 1)
@@ -330,14 +306,12 @@ def annotate_video(video_path, video_num, video_total):
             state.paused = True
             last_display = None
 
-        # +/= increase radius, - decrease radius (10px steps)
         elif key == ord("+") or key == ord("="):
             state.radius = min(state.radius + 10, 500)
 
         elif key == ord("-"):
             state.radius = max(state.radius - 10, 10)
 
-        # ] increase threshold, [ decrease threshold (5s steps)
         elif key == ord("]"):
             state.threshold = min(state.threshold + 5, 300)
 
@@ -350,7 +324,6 @@ def annotate_video(video_path, video_num, video_total):
     cap.release()
     cv2.destroyWindow(WINDOW_NAME)
 
-    # ── Build annotation record ─────────────────────────────────────────
     if state.marked_negative:
         record = {
             "has_abandonment": False,
@@ -371,7 +344,6 @@ def annotate_video(video_path, video_num, video_total):
     return record, quit_all
 
 
-# ── Persistence ─────────────────────────────────────────────────────────────
 def load_annotations(path):
     if path.exists():
         with open(path, "r") as f:
@@ -385,20 +357,19 @@ def save_annotations(path, data):
     print(f"[INFO] Saved annotations to {path}")
 
 
-# ── Main ────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="Abandoned Luggage Annotation Tool")
     parser.add_argument(
-        "video_dir",
+        "input_path",
         nargs="?",
         default=".",
-        help="Directory containing .mp4 / .avi video files",
+        help="Path to a single .mp4/.avi video file, or a directory containing video files",
     )
     parser.add_argument(
         "--output",
         "-o",
         default="ground_truth.json",
-        help="Output JSON file (default: ground_truth.json in video_dir)",
+        help="Output JSON file (default: ground_truth.json in video directory)",
     )
     parser.add_argument(
         "--radius",
@@ -416,16 +387,24 @@ def main():
     )
     args = parser.parse_args()
 
-    video_dir = Path(args.video_dir).resolve()
-    if not video_dir.is_dir():
-        print(f"[ERROR] {video_dir} is not a directory.")
-        sys.exit(1)
+    input_path = Path(args.input_path).resolve()
 
-    videos = sorted(
-        p for p in video_dir.iterdir() if p.suffix.lower() in (".mp4", ".avi")
-    )
-    if not videos:
-        print(f"[ERROR] No .mp4 or .avi files found in {video_dir}")
+    if input_path.is_file():
+        if input_path.suffix.lower() not in (".mp4", ".avi"):
+            print(f"[ERROR] {input_path} is not a supported video file (.mp4 / .avi).")
+            sys.exit(1)
+        videos = [input_path]
+        video_dir = input_path.parent
+    elif input_path.is_dir():
+        video_dir = input_path
+        videos = sorted(
+            p for p in video_dir.iterdir() if p.suffix.lower() in (".mp4", ".avi")
+        )
+        if not videos:
+            print(f"[ERROR] No .mp4 or .avi files found in {video_dir}")
+            sys.exit(1)
+    else:
+        print(f"[ERROR] {input_path} does not exist.")
         sys.exit(1)
 
     output_path = Path(args.output)
@@ -437,7 +416,6 @@ def main():
 
     annotations = load_annotations(output_path)
 
-    # Skip videos that already have annotations
     remaining = [v for v in videos if v.name not in annotations]
     if not remaining:
         print(
