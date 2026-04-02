@@ -1,129 +1,204 @@
 {
-  "video1.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 2046,
-    "bag_roi": [
-      133,
-      327,
-      49,
-      34
-    ],
-    "radius_px": 200,
-    "threshold_s": 15
-  },
-  "video10.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 1910,
-    "bag_roi": [
-      164,
-      193,
-      84,
-      53
-    ],
-    "radius_px": 200,
-    "threshold_s": 15
-  },
-  "video11.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 841,
-    "bag_roi": [
-      517,
-      250,
-      11,
-      15
-    ],
-    "radius_px": 30,
-    "threshold_s": 15
-  },
-  "video2.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 2681,
-    "bag_roi": [
-      458,
-      77,
-      17,
-      30
-    ],
-    "radius_px": 100,
-    "threshold_s": 15
-  },
-  "video3.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 2533,
-    "bag_roi": [
-      224,
-      216,
-      31,
-      26
-    ],
-    "radius_px": 100,
-    "threshold_s": 15
-  },
-  "video4.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 1049,
-    "bag_roi": [
-      465,
-      361,
-      35,
-      58
-    ],
-    "radius_px": 100,
-    "threshold_s": 15
-  },
-  "video5.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 2469,
-    "bag_roi": [
-      136,
-      200,
-      35,
-      27
-    ],
-    "radius_px": 100,
-    "threshold_s": 15
-  },
-  "video6.avi": {
-    "has_abandonment": false,
-    "true_abandon_frame": null,
-    "bag_roi": [],
-    "radius_px": 100,
-    "threshold_s": 15
-  },
-  "video7.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 4345,
-    "bag_roi": [
-      133,
-      85,
-      48,
-      65
-    ],
-    "radius_px": 120,
-    "threshold_s": 15
-  },
-  "video8.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 4185,
-    "bag_roi": [
-      108,
-      188,
-      172,
-      70
-    ],
-    "radius_px": 120,
-    "threshold_s": 15
-  },
-  "video9.avi": {
-    "has_abandonment": true,
-    "true_abandon_frame": 1580,
-    "bag_roi": [
-      419,
-      130,
-      57,
-      81
-    ],
-    "radius_px": 120,
-    "threshold_s": 15
-  }
+  "video1.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 2016,
+      "bag_roi": [
+        133,
+        323,
+        54,
+        46
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    }
+  ],
+  "video10.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 449,
+      "bag_roi": [
+        329,
+        36,
+        48,
+        40
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    },
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 1897,
+      "bag_roi": [
+        164,
+        188,
+        88,
+        61
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    }
+  ],
+  "video11.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 450,
+      "bag_roi": [
+        513,
+        248,
+        18,
+        21
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    }
+  ],
+  "video2.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 2653,
+      "bag_roi": [
+        459,
+        76,
+        17,
+        34
+      ],
+      "radius_px": 100,
+      "threshold_s": 15
+    }
+  ],
+  "video3.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 2514,
+      "bag_roi": [
+        221,
+        210,
+        38,
+        34
+      ],
+      "radius_px": 100,
+      "threshold_s": 15
+    }
+  ],
+  "video5.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 2473,
+      "bag_roi": [
+        137,
+        199,
+        34,
+        27
+      ],
+      "radius_px": 100,
+      "threshold_s": 15
+    }
+  ],
+  "video6.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 5982,
+      "bag_roi": [
+        140,
+        316,
+        49,
+        31
+      ],
+      "radius_px": 100,
+      "threshold_s": 15
+    }
+  ],
+  "video7.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 449,
+      "bag_roi": [
+        332,
+        39,
+        46,
+        34
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    },
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 4389,
+      "bag_roi": [
+        136,
+        81,
+        46,
+        69
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    }
+  ],
+  "video8.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 449,
+      "bag_roi": [
+        329,
+        35,
+        49,
+        38
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    },
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 4204,
+      "bag_roi": [
+        105,
+        193,
+        179,
+        65
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    }
+  ],
+  "video9.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 449,
+      "bag_roi": [
+        329,
+        39,
+        52,
+        34
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    },
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 1611,
+      "bag_roi": [
+        420,
+        131,
+        56,
+        77
+      ],
+      "radius_px": 200,
+      "threshold_s": 15
+    }
+  ],
+  "video4.avi": [
+    {
+      "has_abandonment": true,
+      "true_abandon_frame": 1055,
+      "bag_roi": [
+        462,
+        359,
+        42,
+        60
+      ],
+      "radius_px": 100,
+      "threshold_s": 15
+    }
+  ]
 }
