@@ -113,7 +113,7 @@ def draw_hud(frame, state, video_name, frame_idx, total_frames, fps, video_num, 
     )
 
     keys = (
-        "SPACE:Play/Pause  a/d:+/-5s  T:+threshold  "
+        "SPACE:Play/Pause  a/d:+/-5s  T:Jump threshold  "
         "Drag:ROI  N:Commit  F:Negative  ENTER:Save  Q:Quit"
     )
     cv2.putText(frame, keys, (10, y_top + lh * 4 + 4), font, 0.38, grey, 1, cv2.LINE_AA)
