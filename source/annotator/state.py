@@ -25,7 +25,6 @@ class AnnotationState:
         self.roi_end = None
         self.roi_committed = None
         self.abandon_frame = None
-        self.has_abandonment = False
         self.marked_negative = False
         self.show_hud = True
         self.current_frame = 0
@@ -45,5 +44,4 @@ class AnnotationState:
         })
         self.roi_committed = None
         self.abandon_frame = None
-        self.has_abandonment = False
         return True

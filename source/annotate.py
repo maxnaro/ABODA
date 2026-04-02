@@ -177,7 +177,6 @@ def annotate_video(video_path, video_num, video_total):
 
         elif key == ord("f") or key == ord("F"):
             state.marked_negative = True
-            state.has_abandonment = False
             state.roi_committed = None
             state.abandon_frame = None
             state.annotations.clear()
