@@ -139,9 +139,14 @@ def annotate_video(video_path, video_num, video_total):
         draw_roi_preview(display, state)
         if state.show_hud:
             draw_hud(
-                display, state, video_path.name,
-                state.current_frame, total_frames, fps,
-                video_num, video_total,
+                display,
+                state,
+                video_path.name,
+                state.current_frame,
+                total_frames,
+                fps,
+                video_num,
+                video_total,
             )
         cv2.imshow(WINDOW_NAME, display)
 
@@ -159,13 +164,13 @@ def annotate_video(video_path, video_num, video_total):
 
         elif key == ord("n") or key == ord("N"):
             # Commit current annotation, stamp abandon frame, clear for next
-            if state.roi_committed and not state.marked_negative:
+            if state.paused and state.roi_committed and not state.marked_negative:
                 state.abandon_frame = state.current_frame
                 state.commit_annotation()
 
         elif key == 13:
             # Commit any in-progress annotation, then save all and move on
-            if state.roi_committed and not state.marked_negative:
+            if state.paused and state.roi_committed and not state.marked_negative:
                 state.abandon_frame = state.current_frame
                 state.commit_annotation()
             break
@@ -220,21 +225,29 @@ def annotate_video(video_path, video_num, video_total):
     cv2.destroyWindow(WINDOW_NAME)
 
     if state.marked_negative:
-        record = [{
-            "has_abandonment": False,
-            "true_abandon_frame": None,
-            "bag_roi": [],
-            "radius_px": state.radius,
-            "threshold_s": state.threshold,
-        }]
+        record = [
+            {
+                "has_abandonment": False,
+                "true_abandon_frame": None,
+                "bag_roi": [],
+                "radius_px": state.radius,
+                "threshold_s": state.threshold,
+            }
+        ]
     else:
-        record = state.annotations if state.annotations else [{
-            "has_abandonment": False,
-            "true_abandon_frame": None,
-            "bag_roi": [],
-            "radius_px": state.radius,
-            "threshold_s": state.threshold,
-        }]
+        record = (
+            state.annotations
+            if state.annotations
+            else [
+                {
+                    "has_abandonment": False,
+                    "true_abandon_frame": None,
+                    "bag_roi": [],
+                    "radius_px": state.radius,
+                    "threshold_s": state.threshold,
+                }
+            ]
+        )
 
     return record, quit_all
 
@@ -242,19 +255,29 @@ def annotate_video(video_path, video_num, video_total):
 def main():
     parser = argparse.ArgumentParser(description="Abandoned Luggage Annotation Tool")
     parser.add_argument(
-        "input_path", nargs="?", default=".",
+        "input_path",
+        nargs="?",
+        default=".",
         help="Path to a single .mp4/.avi video file, or a directory containing video files",
     )
     parser.add_argument(
-        "--output", "-o", default="ground_truth.json",
+        "--output",
+        "-o",
+        default="ground_truth.json",
         help="Output JSON file (default: ground_truth.json in video directory)",
     )
     parser.add_argument(
-        "--radius", "-r", type=int, default=DEFAULT_RADIUS_PX,
+        "--radius",
+        "-r",
+        type=int,
+        default=DEFAULT_RADIUS_PX,
         help=f"Initial ownership radius in pixels (default: {DEFAULT_RADIUS_PX})",
     )
     parser.add_argument(
-        "--threshold", "-t", type=int, default=DEFAULT_THRESHOLD_SECONDS,
+        "--threshold",
+        "-t",
+        type=int,
+        default=DEFAULT_THRESHOLD_SECONDS,
         help=f"Initial abandonment threshold in seconds (default: {DEFAULT_THRESHOLD_SECONDS})",
     )
     args = parser.parse_args()
