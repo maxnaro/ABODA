@@ -29,3 +29,21 @@ class AnnotationState:
         self.marked_negative = False
         self.show_hud = True
         self.current_frame = 0
+        self.annotations = []
+
+    def commit_annotation(self):
+        """Save the current ROI and abandon frame as a completed annotation,
+        then clear the working fields for the next one."""
+        if self.roi_committed is None:
+            return False
+        self.annotations.append({
+            "has_abandonment": True,
+            "true_abandon_frame": self.abandon_frame,
+            "bag_roi": list(self.roi_committed),
+            "radius_px": self.radius,
+            "threshold_s": self.threshold,
+        })
+        self.roi_committed = None
+        self.abandon_frame = None
+        self.has_abandonment = False
+        return True

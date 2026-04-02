@@ -1,8 +1,8 @@
 """Abandoned Luggage Annotation Tool
 
 Rapidly annotate video datasets for abandoned-luggage detection.
-Loads video files from a directory or a single file, lets the user tag the
-exact abandonment frame + bounding box, and saves results to ground_truth.json.
+Supports multiple abandonment events per video. Loads video files from a
+directory or a single file and saves results to ground_truth.json.
 
 Usage:
     python annotate.py [VIDEO_PATH_OR_DIR] [--output ground_truth.json]
@@ -22,7 +22,12 @@ from annotator.constants import (
     TRACKBAR_NAME,
     WINDOW_NAME,
 )
-from annotator.overlays import draw_hud, draw_radius_circle, draw_roi_preview
+from annotator.overlays import (
+    draw_committed_annotations,
+    draw_hud,
+    draw_radius_circle,
+    draw_roi_preview,
+)
 from annotator.persistence import load_annotations, save_annotations
 from annotator.state import AnnotationState
 
@@ -66,7 +71,11 @@ def on_trackbar(_pos):
 def annotate_video(video_path, video_num, video_total):
     """Run the interactive annotation loop for a single video.
 
-    Returns (record, quit_all) where record is the annotation dict
+    Supports multiple annotations per video via the N key. Each press
+    commits the current ROI + abandon frame and clears for the next.
+    Enter saves all committed annotations and moves to the next video.
+
+    Returns (record, quit_all) where record is a list of annotation dicts
     and quit_all indicates the user wants to exit the session.
     """
     state.reset_video()
@@ -125,6 +134,7 @@ def annotate_video(video_path, video_num, video_total):
                 )
 
         display = last_display.copy()
+        draw_committed_annotations(display, state)
         draw_radius_circle(display, state)
         draw_roi_preview(display, state)
         if state.show_hud:
@@ -147,10 +157,17 @@ def annotate_video(video_path, video_num, video_total):
             quit_all = True
             break
 
-        elif key == 13:
+        elif key == ord("n") or key == ord("N"):
+            # Commit current annotation, stamp abandon frame, clear for next
             if state.roi_committed and not state.marked_negative:
-                state.has_abandonment = True
                 state.abandon_frame = state.current_frame
+                state.commit_annotation()
+
+        elif key == 13:
+            # Commit any in-progress annotation, then save all and move on
+            if state.roi_committed and not state.marked_negative:
+                state.abandon_frame = state.current_frame
+                state.commit_annotation()
             break
 
         elif key == ord("f") or key == ord("F"):
@@ -158,6 +175,7 @@ def annotate_video(video_path, video_num, video_total):
             state.has_abandonment = False
             state.roi_committed = None
             state.abandon_frame = None
+            state.annotations.clear()
 
         elif key == ord("t") or key == ord("T"):
             jump = int(state.threshold * fps)
@@ -202,21 +220,21 @@ def annotate_video(video_path, video_num, video_total):
     cv2.destroyWindow(WINDOW_NAME)
 
     if state.marked_negative:
-        record = {
+        record = [{
             "has_abandonment": False,
             "true_abandon_frame": None,
             "bag_roi": [],
             "radius_px": state.radius,
             "threshold_s": state.threshold,
-        }
+        }]
     else:
-        record = {
-            "has_abandonment": state.has_abandonment,
-            "true_abandon_frame": state.abandon_frame,
-            "bag_roi": list(state.roi_committed) if state.roi_committed else [],
+        record = state.annotations if state.annotations else [{
+            "has_abandonment": False,
+            "true_abandon_frame": None,
+            "bag_roi": [],
             "radius_px": state.radius,
             "threshold_s": state.threshold,
-        }
+        }]
 
     return record, quit_all
 
