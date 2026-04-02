@@ -14,6 +14,8 @@ from annotator.constants import (
     RADIUS_COLOR,
 )
 
+COMMITTED_COLOR = (0, 200, 200)
+
 
 def draw_radius_circle(frame, state):
     """Draw a translucent ownership-radius circle centred on the ROI
@@ -32,8 +34,20 @@ def draw_radius_circle(frame, state):
     cv2.circle(frame, center, state.radius, RADIUS_COLOR, 1, cv2.LINE_AA)
 
 
+def draw_committed_annotations(frame, state):
+    """Draw bounding boxes for all previously committed annotations."""
+    for i, ann in enumerate(state.annotations):
+        x, y, w, h = ann["bag_roi"]
+        cv2.rectangle(frame, (x, y), (x + w, y + h), COMMITTED_COLOR, 1, cv2.LINE_AA)
+        label = f"#{i + 1}"
+        cv2.putText(
+            frame, label, (x, y - 6),
+            cv2.FONT_HERSHEY_SIMPLEX, 0.4, COMMITTED_COLOR, 1, cv2.LINE_AA,
+        )
+
+
 def draw_roi_preview(frame, state):
-    """Draw the in-progress drag rectangle or the committed bounding box."""
+    """Draw the in-progress drag rectangle or the current working bounding box."""
     if state.drawing and state.roi_start and state.roi_end:
         cv2.rectangle(frame, state.roi_start, state.roi_end, BOX_COLOR, BOX_THICKNESS)
     elif state.roi_committed:
@@ -72,11 +86,12 @@ def draw_hud(frame, state, video_name, frame_idx, total_frames, fps, video_num, 
     status_parts = []
     if state.marked_negative:
         status_parts.append(("NEGATIVE SAMPLE", yellow))
-    elif state.has_abandonment and state.abandon_frame is not None:
-        status_parts.append((f"Abandon frame: {state.abandon_frame}", green))
-    if state.roi_committed:
-        x, y_, ww, hh = state.roi_committed
-        status_parts.append((f"ROI: [{x},{y_},{ww},{hh}]", green))
+    else:
+        if state.annotations:
+            status_parts.append((f"{len(state.annotations)} saved", green))
+        if state.roi_committed:
+            x, y_, ww, hh = state.roi_committed
+            status_parts.append((f"ROI: [{x},{y_},{ww},{hh}]", green))
     if not status_parts:
         status_parts.append(("No annotation yet", grey))
 
@@ -98,8 +113,8 @@ def draw_hud(frame, state, video_name, frame_idx, total_frames, fps, video_num, 
     )
 
     keys = (
-        "SPACE:Play/Pause  a/d:+/-5s  T:+threshold  "
-        "Drag:ROI  F:Negative  ENTER:Save+Next  Q:Quit"
+        "SPACE:Play/Pause  a/d:+/-5s  T:Jump threshold  "
+        "Drag:ROI  N:Commit  F:Negative  ENTER:Save  Q:Quit"
     )
     cv2.putText(frame, keys, (10, y_top + lh * 4 + 4), font, 0.38, grey, 1, cv2.LINE_AA)
 
