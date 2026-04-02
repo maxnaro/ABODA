@@ -1,0 +1,13 @@
+"""Shared constants for the annotation tool."""
+
+SKIP_SECONDS = 5
+DEFAULT_THRESHOLD_SECONDS = 15
+DEFAULT_RADIUS_PX = 200
+WINDOW_NAME = "Abandoned Luggage Annotator"
+HUD_HEIGHT = 140
+HUD_ALPHA = 0.70
+BOX_COLOR = (0, 255, 0)
+BOX_THICKNESS = 2
+RADIUS_COLOR = (255, 180, 0)
+RADIUS_ALPHA = 0.25
+TRACKBAR_NAME = "Frame"
